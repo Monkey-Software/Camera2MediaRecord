@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.alexi.recordvideo.camera.AutoFitTextureView
+            android:id="@+id/mTextureView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </FrameLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@drawable/bg_radient"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/close"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:padding="16dp"
+            android:src="@drawable/ic_close"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.alexi.recordvideo.ui.custom.LineProgressView
+            android:id="@+id/lineProgressView"
+            android:layout_width="0dp"
+            android:layout_height="3dp"
+            android:layout_alignTop="@id/close"
+            android:layout_alignBottom="@id/close"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_toEndOf="@id/close"
+            app:layout_constraintBottom_toBottomOf="@+id/close"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/close"
+            app:layout_constraintTop_toTopOf="@+id/close" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/rl_record_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:paddingLeft="@dimen/basic_activity_margin2"
+        android:paddingRight="@dimen/basic_activity_margin2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_flash_video"
+            android:layout_width="@dimen/title_bar_hei"
+            android:layout_height="@dimen/title_bar_hei"
+            android:layout_centerVertical="true"
+            android:padding="@dimen/basic_activity_margin2"
+            android:src="@drawable/ic_flash_off" />
+
+        <ImageView
+            android:id="@+id/iv_camera_mode"
+            android:layout_width="@dimen/title_bar_hei"
+            android:layout_height="@dimen/title_bar_hei"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:padding="@dimen/basic_activity_margin2"
+            android:src="@drawable/ic_switch_camera" />
+
+        <com.alexi.recordvideo.ui.custom.RecordView
+            android:id="@+id/recordView"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_centerInParent="true" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tv_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/rl_record_button"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/video_hint_circle"
+        android:padding="5dp"
+        android:text="@string/capture_guide"
+        android:textColor="#fff"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/rl_record_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
