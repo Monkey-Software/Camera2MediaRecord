@@ -1,4 +1,4 @@
-package com.alexi.recordvideo.camera;
+package com.alexi.recordvideo.ui.custom;
 
 import android.content.Context;
 import android.util.AttributeSet;

@@ -1,5 +1,6 @@
-package com.alexi.recordvideo;
+package com.alexi.recordvideo.camera;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -7,8 +8,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.alexi.recordvideo.camera.AutoFitTextureView;
-import com.alexi.recordvideo.camera.CameraVideoActivity;
+import com.alexi.recordvideo.R;
 import com.alexi.recordvideo.ui.custom.LineProgressView;
 import com.alexi.recordvideo.ui.custom.RecordView;
 import com.coremedia.iso.IsoFile;
@@ -32,13 +32,13 @@ import java.util.Locale;
 
 public class CameraActivity extends CameraVideoActivity {
 
-    private static final String TAG = "CameraFragment";
+    private static final String TAG = "CameraActivity";
     private static final String VIDEO_DIRECTORY_NAME = "AndroidWave";
 
 
-    ImageView iv_change_camera;
+    ImageView ivSwitchCamera;
     LineProgressView lineProgressView;
-    ImageView iv_flash_video;
+    ImageView ivSwitchFlash;
     TextView tv_hint;
     RecordView recordView;
 
@@ -66,9 +66,9 @@ public class CameraActivity extends CameraVideoActivity {
     protected void setUpView() {
         super.setUpView();
         recordView = findViewById(R.id.recordView);
-        iv_change_camera = findViewById(R.id.iv_camera_mode);
+        ivSwitchCamera = findViewById(R.id.iv_camera_mode);
         lineProgressView = findViewById(R.id.lineProgressView);
-        iv_flash_video = findViewById(R.id.iv_flash_video);
+        ivSwitchFlash = findViewById(R.id.iv_flash_video);
         tv_hint = findViewById(R.id.tv_hint);
 
         recordView.setOnGestureListener(new RecordView.OnGestureListener() {
@@ -103,6 +103,23 @@ public class CameraActivity extends CameraVideoActivity {
             public void onClick() {
                 // TODO Take take picture
             }
+        });
+
+        ivSwitchCamera.setOnClickListener(v -> {
+            switchCamera();
+            if (isFlashSupported) {
+                ivSwitchFlash.setImageResource(R.drawable.ic_flash_off);
+                ivSwitchFlash.setClickable(true);
+                ivSwitchFlash.setColorFilter(Color.WHITE);
+            } else {
+                ivSwitchFlash.setImageResource(R.drawable.ic_flash_off);
+                ivSwitchFlash.setClickable(false);
+                ivSwitchFlash.setColorFilter(getResources().getColor(R.color.colorDisable));
+            }
+        });
+        ivSwitchFlash.setOnClickListener(v -> {
+            boolean flash = switchFlash();
+            ivSwitchFlash.setImageResource(flash ? R.drawable.ic_flash_on : R.drawable.ic_flash_off);
         });
     }
 
@@ -187,7 +204,7 @@ public class CameraActivity extends CameraVideoActivity {
     private void cleanRecord() {
         recordView.initState();
         mOutputFilePath = null;
-        iv_flash_video.setVisibility(View.VISIBLE);
+        ivSwitchFlash.setVisibility(View.VISIBLE);
         lineProgressView.setProgress(0);
     }
 

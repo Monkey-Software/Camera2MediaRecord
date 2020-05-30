@@ -9,5 +9,6 @@
     <color name="black">#000000</color>
 
 
+    <color name="colorDisable">#595959</color>
     <color name="video_hint_color">#33000000</color>
 </resources>
