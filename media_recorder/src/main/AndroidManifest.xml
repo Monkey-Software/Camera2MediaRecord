@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.alexi.recordvideo">
+    package="com.brianhoang.recordvideo">
 
     <!-- declare storage, camera and audio permission -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -11,7 +11,17 @@
         android:allowBackup="true"
         android:supportsRtl="true">
         <activity
-            android:name=".camera.CameraActivity"
+            android:name="com.brianhoang.recordvideo.camera.CameraActivity"
+            android:screenOrientation="portrait" />
+
+
+        <activity
+            android:name="com.brianhoang.recordvideo.viewer.ViewVideoActivity"
+            android:screenOrientation="portrait" />
+
+
+        <activity
+            android:name="com.brianhoang.recordvideo.viewer.ViewPhotoActivity"
             android:screenOrientation="portrait" />
     </application>
 </manifest>

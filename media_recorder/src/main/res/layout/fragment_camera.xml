@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:background="@color/black">
 
-        <com.alexi.recordvideo.ui.custom.AutoFitTextureView
+        <com.brianhoang.recordvideo.ui.AutoFitTextureView
             android:id="@+id/mTextureView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -21,8 +21,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@drawable/bg_radient"
+        android:layout_height="@dimen/control_panel_size"
+        android:background="@drawable/bg_gradient"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -35,7 +35,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <com.alexi.recordvideo.ui.custom.LineProgressView
+        <com.brianhoang.recordvideo.ui.LineProgressView
             android:id="@+id/lineProgressView"
             android:layout_width="0dp"
             android:layout_height="3dp"
@@ -56,30 +56,30 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:paddingLeft="@dimen/basic_activity_margin2"
-        android:paddingRight="@dimen/basic_activity_margin2"
+        android:paddingLeft="@dimen/layout_margin"
+        android:paddingRight="@dimen/layout_margin"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
             android:id="@+id/iv_flash_video"
-            android:layout_width="@dimen/title_bar_hei"
-            android:layout_height="@dimen/title_bar_hei"
+            android:layout_width="@dimen/media_control_icon_size"
+            android:layout_height="@dimen/media_control_icon_size"
             android:layout_centerVertical="true"
-            android:padding="@dimen/basic_activity_margin2"
+            android:padding="@dimen/layout_margin"
             android:src="@drawable/ic_flash_off" />
 
         <ImageView
             android:id="@+id/iv_camera_mode"
-            android:layout_width="@dimen/title_bar_hei"
-            android:layout_height="@dimen/title_bar_hei"
+            android:layout_width="@dimen/media_control_icon_size"
+            android:layout_height="@dimen/media_control_icon_size"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:padding="@dimen/basic_activity_margin2"
+            android:padding="@dimen/layout_margin"
             android:src="@drawable/ic_switch_camera" />
 
-        <com.alexi.recordvideo.ui.custom.RecordView
+        <com.brianhoang.recordvideo.ui.RecordView
             android:id="@+id/recordView"
             android:layout_width="120dp"
             android:layout_height="120dp"
@@ -95,7 +95,7 @@
         android:background="@drawable/video_hint_circle"
         android:padding="5dp"
         android:text="@string/capture_guide"
-        android:textColor="#fff"
+        android:textColor="@color/white"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/rl_record_button"
         app:layout_constraintEnd_toEndOf="parent"

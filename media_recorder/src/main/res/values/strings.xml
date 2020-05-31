@@ -6,14 +6,10 @@
     <string name="message_permission">This app needs permission to use this feature. You can grant them in app settings.</string>
     <string name="title_go_to_setting">GOTO SETTINGS</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="play_stop">Play or Stop</string>
 
 
     <string name="capture_guide">Tap for photo, hold for video</string>
     <string name="hold_for_re_record">Hold for record again</string>
-    <string name="edit_video_error">Edit video error</string>
     <string name="capture_error">Capture photo error</string>
     <string name="process_image">Processing image</string>
     <string name="loading">Loading</string>
