@@ -429,8 +429,6 @@ public class UniversalVideoView extends SurfaceView
                         boolean a = mMediaPlayer.isPlaying();
                         int b = mCurrentState;
                         mMediaController.showComplete();
-                        //FIXME 播放完成后,视频中央会显示一个播放按钮,点击播放按钮会调用start重播,
-                        // 但start后竟然又回调到这里,导致第一次点击按钮不会播放视频,需要点击第二次.
                         Log.d(TAG, String.format("a=%s,b=%d", a, b));
                     }
                     if (mOnCompletionListener != null) {

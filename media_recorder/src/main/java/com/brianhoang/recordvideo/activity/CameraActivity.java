@@ -1,9 +1,10 @@
-package com.brianhoang.recordvideo.camera;
+package com.brianhoang.recordvideo.activity;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
+import android.media.CamcorderProfile;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,15 +14,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.brianhoang.recordvideo.R;
+import com.brianhoang.recordvideo.camera.CameraLogicActivity;
 import com.brianhoang.recordvideo.ui.LineProgressView;
 import com.brianhoang.recordvideo.ui.RecordView;
 import com.brianhoang.recordvideo.utils.RecordFileUtil;
-import com.brianhoang.recordvideo.viewer.ViewPhotoActivity;
-import com.brianhoang.recordvideo.viewer.ViewVideoActivity;
 
 import java.io.File;
 
-public class CameraActivity extends CameraVideoActivity {
+public class CameraActivity extends CameraLogicActivity {
     public static final String TAG = "CameraActivity";
 
     public static final String INTENT_PATH = "intent_path";
@@ -33,11 +33,13 @@ public class CameraActivity extends CameraVideoActivity {
     public static final int REQUEST_CODE_VIDEO = 100;
     public static final int REQUEST_CODE_PHOTO = 101;
 
-    ImageView ivSwitchCamera;
-    LineProgressView lineProgressView;
-    ImageView ivSwitchFlash;
-    TextView tv_hint;
-    RecordView recordView;
+
+    public static final int MAX_VIDEO_LENGTH = 10 * 1000;
+
+    private LineProgressView lineProgressView;
+    private ImageView ivSwitchFlash;
+    private TextView tv_hint;
+    private RecordView recordView;
     private boolean isCapturePhoto = false;
 
     private String mOutputFilePath;
@@ -64,6 +66,11 @@ public class CameraActivity extends CameraVideoActivity {
     }
 
     @Override
+    protected int maxVideoLength() {
+        return MAX_VIDEO_LENGTH;
+    }
+
+    @Override
     public void onCameraPreview(SurfaceTexture surfaceTexture) {
         Log.e(TAG, "onCameraPreview");
 
@@ -75,10 +82,15 @@ public class CameraActivity extends CameraVideoActivity {
     }
 
     @Override
+    public int getCameraQuality() {
+        return CamcorderProfile.QUALITY_1080P;
+    }
+
+    @Override
     protected void setUpView() {
         super.setUpView();
         recordView = findViewById(R.id.recordView);
-        ivSwitchCamera = findViewById(R.id.iv_camera_mode);
+        ImageView ivSwitchCamera = findViewById(R.id.iv_camera_mode);
         lineProgressView = findViewById(R.id.lineProgressView);
         ivSwitchFlash = findViewById(R.id.iv_flash_video);
         tv_hint = findViewById(R.id.tv_hint);
@@ -170,10 +182,11 @@ public class CameraActivity extends CameraVideoActivity {
     private void savePhoto(Bitmap bitmap) {
         new AsyncTask<Bitmap, Void, String>() {
 
+
             @Override
             protected String doInBackground(Bitmap... bitmaps) {
                 Bitmap bm = bitmaps[0];
-                return RecordFileUtil.saveBitmap(bitmap);
+                return RecordFileUtil.saveBitmap(bm);
             }
 
             @Override

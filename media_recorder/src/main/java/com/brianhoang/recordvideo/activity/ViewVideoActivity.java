@@ -1,4 +1,4 @@
-package com.brianhoang.recordvideo.viewer;
+package com.brianhoang.recordvideo.activity;
 
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -18,7 +18,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.brianhoang.recordvideo.R;
-import com.brianhoang.recordvideo.camera.CameraActivity;
 import com.brianhoang.recordvideo.ui.UniversalMediaController;
 import com.brianhoang.recordvideo.ui.UniversalVideoView;
 

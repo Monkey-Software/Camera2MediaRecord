@@ -1,9 +1,7 @@
 package com.brianhoang.recordvideo.camera;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Matrix;
@@ -19,43 +17,30 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.provider.Settings;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 import android.view.TextureView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.brianhoang.recordvideo.R;
 import com.brianhoang.recordvideo.ui.AutoFitTextureView;
 import com.brianhoang.recordvideo.utils.CameraSize;
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.MultiplePermissionsReport;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-public abstract class CameraVideoActivity extends AppCompatActivity {
+public abstract class CameraLogicActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraVideoActivity";
-
-    public static final int MAX_VIDEO_LENGTH = 10 * 1000;
 
     private static final int SENSOR_ORIENTATION_INVERSE_DEGREES = 270;
     private static final int SENSOR_ORIENTATION_DEFAULT_DEGREES = 90;
@@ -79,8 +64,6 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
 
     private String mCurrentFile;
 
-    private static final String VIDEO_DIRECTORY_NAME = "AndroidWave";
-
     /**
      * An {@link AutoFitTextureView} for camera preview.
      */
@@ -91,8 +74,8 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
      */
     private CameraDevice mCameraDevice;
 
-    int mCameraLensFacingDirection = CameraCharacteristics.LENS_FACING_BACK;
-    boolean isFlashSupported = false;
+    protected int mCameraLensFacingDirection = CameraCharacteristics.LENS_FACING_BACK;
+    protected boolean isFlashSupported = false;
     private boolean isTorchOn;
 
     /**
@@ -130,6 +113,12 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
 
     };
 
+    private String mCameraId;
+
+    /**
+     * The {@link Size} of camera.
+     */
+    private Size mCameraSize;
     /**
      * The {@link Size} of camera preview.
      */
@@ -194,70 +183,17 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
     private Integer mSensorOrientation;
     private CaptureRequest.Builder mPreviewBuilder;
 
-
-    /**
-     * In this sample, we choose a video size with 3x4 for  aspect ratio. for more perfectness 720 as well Also, we don't use sizes
-     * larger than 1080p, since MediaRecorder cannot handle such a high-resolution video.
-     *
-     * @param choices The list of available sizes
-     * @return The video size 1080p,720px
-     */
-    private static Size chooseVideoSize(Size[] choices) {
-        for (Size size : choices) {
-            if (1920 == size.getWidth() && 1080 == size.getHeight()) {
-                return size;
-            }
-        }
-        for (Size size : choices) {
-            if (size.getWidth() == size.getHeight() * 4 / 3 && size.getWidth() <= 1080) {
-                return size;
-            }
-        }
-        Log.e(TAG, "Couldn't find any suitable video size");
-        return choices[choices.length - 1];
-    }
-
-
-    /**
-     * Given {@code choices} of {@code Size}s supported by a camera, chooses the smallest one whose
-     * width and height are at least as large as the respective requested values, and whose aspect
-     * ratio matches with the specified value.
-     *
-     * @param choices     The list of sizes that the camera supports for the intended output class
-     * @param width       The minimum desired width
-     * @param height      The minimum desired height
-     * @param aspectRatio The aspect ratio
-     * @return The optimal {@code Size}, or an arbitrary one if none were big enough
-     */
-    private static Size chooseOptimalSize(Size[] choices, int width, int height, Size aspectRatio) {
-        // Collect the supported resolutions that are at least as big as the preview Surface
-        List<Size> bigEnough = new ArrayList<>();
-        int w = aspectRatio.getWidth();
-        int h = aspectRatio.getHeight();
-        for (Size option : choices) {
-            if (option.getHeight() == option.getWidth() * h / w &&
-                    option.getWidth() >= width && option.getHeight() >= height) {
-                bigEnough.add(option);
-            }
-        }
-
-        // Pick the smallest of those, assuming we found any
-        if (bigEnough.size() > 0) {
-            return Collections.min(bigEnough, new CompareSizesByArea());
-        } else {
-            Log.e(TAG, "Couldn't find any suitable preview size");
-            return choices[0];
-        }
-    }
-
     public abstract int getTextureResource();
 
+    protected abstract int maxVideoLength();
+
     public abstract void onCameraPreview(SurfaceTexture surfaceTexture);
+
+    public abstract int getCameraQuality();
 
     protected void setUpView() {
         mTextureView = findViewById(getTextureResource());
     }
-
 
     /**
      * Create directory and return file
@@ -269,7 +205,7 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         startBackgroundThread();
-        requestPermission();
+        startCamera();
     }
 
     @Override
@@ -309,59 +245,12 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
     /**
      * Requesting permissions storage, audio and camera at once
      */
-    public void requestPermission() {
-        Dexter.withActivity(this).withPermissions(Manifest.permission.CAMERA,
-                Manifest.permission.RECORD_AUDIO,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .withListener(new MultiplePermissionsListener() {
-                    @Override
-                    public void onPermissionsChecked(MultiplePermissionsReport report) {
-                        // check if all permissions are granted or not
-                        if (report.areAllPermissionsGranted()) {
-                            if (mTextureView.isAvailable()) {
-                                openCamera(mTextureView.getWidth(), mTextureView.getHeight());
-                            } else {
-                                mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
-                            }
-                        }
-                        // check for permanent denial of any permission show alert dialog
-                        if (report.isAnyPermissionPermanentlyDenied()) {
-                            // open Settings activity
-                            showSettingsDialog();
-                        }
-                    }
-
-                    @Override
-                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                        token.continuePermissionRequest();
-                    }
-                }).withErrorListener(error -> Toast.makeText(getApplicationContext(), "Error occurred! ", Toast.LENGTH_SHORT).show())
-                .onSameThread()
-                .check();
-    }
-
-    /**
-     * Showing Alert Dialog with Settings option in case of deny any permission
-     */
-    private void showSettingsDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.message_need_permission));
-        builder.setMessage(getString(R.string.message_permission));
-        builder.setPositiveButton(getString(R.string.title_go_to_setting), (dialog, which) -> {
-            dialog.cancel();
-            openSettings();
-        });
-        builder.show();
-
-    }
-
-    // navigating settings app
-    private void openSettings() {
-        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        Uri uri = Uri.fromParts("package", getPackageName(), null);
-        intent.setData(uri);
-        startActivityForResult(intent, 101);
+    public void startCamera() {
+        if (mTextureView.isAvailable()) {
+            openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+        } else {
+            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+        }
     }
 
     /**
@@ -375,25 +264,24 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
 
         try {
             for (String cameraId : cameraManager.getCameraIdList()) {
-                CameraCharacteristics characteristics
-                        = cameraManager.getCameraCharacteristics(cameraId);
+                CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
 
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing != mCameraLensFacingDirection) {
                     continue;
                 }
-                StreamConfigurationMap map = characteristics
-                        .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                mCameraId = cameraId;
+
+                StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
                 if (map == null) {
                     throw new RuntimeException("Cannot get available preview/video sizes");
                 }
-                /* The {@link Size} of video recording. */
-                Size mVideoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder.class));
-                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
-                        width, height, mVideoSize);
 
-                mPreviewSize = new CameraSize().getPreviewOutputSize(mTextureView.getDisplay(), characteristics, SurfaceHolder.class, null);
+                /* The {@link Size} of video recording. */
+                mCameraSize = CameraSize.chooseVideoSize(map.getOutputSizes(SurfaceTexture.class));
+                mPreviewSize = CameraSize.chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
+                        width, height, mCameraSize);
 
                 int orientation = getResources().getConfiguration().orientation;
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -402,10 +290,9 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
                     mTextureView.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
                 }
                 configureTransform(width, height);
-                mMediaRecorder = new MediaRecorder();
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     // TODO: Consider calling
-                    requestPermission();
+                    startCamera();
                     return;
                 }
 
@@ -456,6 +343,7 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
             assert texture != null;
             texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
             mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+
             Surface previewSurface = new Surface(texture);
             mPreviewBuilder.addTarget(previewSurface);
             mCameraDevice.createCaptureSession(Collections.singletonList(previewSurface),
@@ -529,20 +417,21 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
     }
 
     private void setUpMediaRecorder() throws IOException {
+        mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mCurrentFile = getOutputMediaFile();
         mMediaRecorder.setOutputFile(mCurrentFile);
-        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
+        CamcorderProfile profile = CamcorderProfile.get(getCameraQuality());
         mMediaRecorder.setVideoFrameRate(profile.videoFrameRate);
-        mMediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
+        mMediaRecorder.setVideoSize(mCameraSize.getWidth(), mCameraSize.getHeight());
         mMediaRecorder.setVideoEncodingBitRate(profile.videoBitRate);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mMediaRecorder.setAudioEncodingBitRate(profile.audioBitRate);
         mMediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
-        mMediaRecorder.setMaxDuration(MAX_VIDEO_LENGTH);
+        mMediaRecorder.setMaxDuration(maxVideoLength());
 
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
         switch (mSensorOrientation) {
@@ -671,21 +560,5 @@ public abstract class CameraVideoActivity extends AppCompatActivity {
         }
         return isTorchOn;
     }
-
-
-    /**
-     * Compares two {@code Size}s based on their areas.
-     */
-    static class CompareSizesByArea implements Comparator<Size> {
-
-        @Override
-        public int compare(Size lhs, Size rhs) {
-            // We cast here to ensure the multiplications won't overflow
-            return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
-                    (long) rhs.getWidth() * rhs.getHeight());
-        }
-
-    }
-
 }
 

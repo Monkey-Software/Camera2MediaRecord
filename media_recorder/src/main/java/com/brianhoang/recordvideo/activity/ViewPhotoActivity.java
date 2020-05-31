@@ -1,4 +1,4 @@
-package com.brianhoang.recordvideo.viewer;
+package com.brianhoang.recordvideo.activity;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -9,11 +9,9 @@ import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.brianhoang.recordvideo.R;
-import com.brianhoang.recordvideo.camera.CameraActivity;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
-
 
 public class ViewPhotoActivity extends AppCompatActivity {
 

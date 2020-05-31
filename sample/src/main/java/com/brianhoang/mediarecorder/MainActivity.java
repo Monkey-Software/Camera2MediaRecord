@@ -3,11 +3,14 @@ package com.brianhoang.mediarecorder;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.widget.Toast;
 
-import com.brianhoang.recordvideo.camera.CameraActivity;
+import com.brianhoang.recordvideo.activity.CameraActivity;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -27,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void requestPermission() {
-        Dexter.withActivity(this).withPermissions(Manifest.permission.CAMERA,
+        Dexter.withContext(this).withPermissions(Manifest.permission.CAMERA,
                 Manifest.permission.RECORD_AUDIO,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -37,6 +40,13 @@ public class MainActivity extends AppCompatActivity {
                         // check if all permissions are granted or not
                         if (report.areAllPermissionsGranted()) {
                             startActivityForResult(new Intent(MainActivity.this, CameraActivity.class), 1001);
+                        }
+
+
+                        // check for permanent denial of any permission show alert dialog
+                        if (report.isAnyPermissionPermanentlyDenied()) {
+                            // open Settings activity
+                            showSettingsDialog();
                         }
                     }
 
@@ -48,5 +58,30 @@ public class MainActivity extends AppCompatActivity {
                 .onSameThread()
                 .check();
     }
+
+
+    /**
+     * Showing Alert Dialog with Settings option in case of deny any permission
+     */
+    private void showSettingsDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.message_need_permission));
+        builder.setMessage(getString(R.string.message_permission));
+        builder.setPositiveButton(getString(R.string.title_go_to_setting), (dialog, which) -> {
+            dialog.cancel();
+            openSettings();
+        });
+        builder.show();
+
+    }
+
+    // navigating settings app
+    private void openSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivityForResult(intent, 101);
+    }
+
 
 }

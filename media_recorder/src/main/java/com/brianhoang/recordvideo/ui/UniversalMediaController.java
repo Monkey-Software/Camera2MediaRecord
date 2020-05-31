@@ -76,8 +76,6 @@ public class UniversalMediaController extends FrameLayout {
 
     private View mControlLayout;
 
-    private View mCenterPlayButton;
-
     public UniversalMediaController(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
@@ -107,7 +105,6 @@ public class UniversalMediaController extends FrameLayout {
         errorLayout = v.findViewById(R.id.error_layout);
         mTurnButton = v.findViewById(R.id.turn_button);
         mScaleButton = v.findViewById(R.id.scale_button);
-        mCenterPlayButton = v.findViewById(R.id.center_play_btn);
 
         if (mTurnButton != null) {
             mTurnButton.requestFocus();
@@ -123,10 +120,6 @@ public class UniversalMediaController extends FrameLayout {
             if (mScaleButton != null) {
                 mScaleButton.setVisibility(GONE);
             }
-        }
-
-        if (mCenterPlayButton != null) {//重新开始播放
-            mCenterPlayButton.setOnClickListener(mCenterPlayListener);
         }
 
         View bar = v.findViewById(R.id.seekbar);
@@ -248,7 +241,7 @@ public class UniversalMediaController extends FrameLayout {
                     showCenterView(R.id.loading_layout);
                     break;
                 case SHOW_COMPLETE: //7
-                    showCenterView(R.id.center_play_btn);
+                    showCenterView(R.id.control_layout);
                     break;
                 case SHOW_ERROR: //5
                     show();
@@ -269,15 +262,15 @@ public class UniversalMediaController extends FrameLayout {
             if (loadingLayout.getVisibility() != VISIBLE) {
                 loadingLayout.setVisibility(VISIBLE);
             }
-            if (mCenterPlayButton.getVisibility() == VISIBLE) {
-                mCenterPlayButton.setVisibility(GONE);
+            if (mControlLayout.getVisibility() == VISIBLE) {
+                mControlLayout.setVisibility(GONE);
             }
             if (errorLayout.getVisibility() == VISIBLE) {
                 errorLayout.setVisibility(GONE);
             }
-        } else if (resId == R.id.center_play_btn) {
-            if (mCenterPlayButton.getVisibility() != VISIBLE) {
-                mCenterPlayButton.setVisibility(VISIBLE);
+        } else if (resId == R.id.control_layout) {
+            if (mControlLayout.getVisibility() != VISIBLE) {
+                mControlLayout.setVisibility(VISIBLE);
             }
             if (loadingLayout.getVisibility() == VISIBLE) {
                 loadingLayout.setVisibility(GONE);
@@ -290,8 +283,8 @@ public class UniversalMediaController extends FrameLayout {
             if (errorLayout.getVisibility() != VISIBLE) {
                 errorLayout.setVisibility(VISIBLE);
             }
-            if (mCenterPlayButton.getVisibility() == VISIBLE) {
-                mCenterPlayButton.setVisibility(GONE);
+            if (mControlLayout.getVisibility() == VISIBLE) {
+                mControlLayout.setVisibility(GONE);
             }
             if (loadingLayout.getVisibility() == VISIBLE) {
                 loadingLayout.setVisibility(GONE);
@@ -302,8 +295,8 @@ public class UniversalMediaController extends FrameLayout {
 
 
     private void hideCenterView() {
-        if (mCenterPlayButton.getVisibility() == VISIBLE) {
-            mCenterPlayButton.setVisibility(GONE);
+        if (mControlLayout.getVisibility() == VISIBLE) {
+            mControlLayout.setVisibility(GONE);
         }
         if (errorLayout.getVisibility() == VISIBLE) {
             errorLayout.setVisibility(GONE);

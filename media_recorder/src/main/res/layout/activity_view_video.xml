@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-
     <FrameLayout
         android:id="@+id/videoViewLayout"
         android:layout_width="0dp"
@@ -35,7 +34,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/videoViewLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:uvv_scalable="true" />
+        app:uvv_scalable="false" />
 
     <FrameLayout
         android:id="@+id/header"

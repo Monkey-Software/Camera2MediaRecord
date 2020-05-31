@@ -11,17 +11,18 @@
         android:allowBackup="true"
         android:supportsRtl="true">
         <activity
-            android:name="com.brianhoang.recordvideo.camera.CameraActivity"
-            android:screenOrientation="portrait" />
-
-
-        <activity
-            android:name="com.brianhoang.recordvideo.viewer.ViewVideoActivity"
-            android:screenOrientation="portrait" />
-
+            android:name=".activity.CameraActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.FullScreen" />
 
         <activity
-            android:name="com.brianhoang.recordvideo.viewer.ViewPhotoActivity"
-            android:screenOrientation="portrait" />
+            android:name=".activity.ViewVideoActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.FullScreen" />
+
+        <activity
+            android:name=".activity.ViewPhotoActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.FullScreen" />
     </application>
 </manifest>
