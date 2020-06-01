@@ -1,5 +1,6 @@
 package com.brianhoang.mediarecorder;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
@@ -8,6 +9,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.brianhoang.recordvideo.activity.CameraActivity;
@@ -21,12 +23,15 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    TextView textView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         findViewById(R.id.start_record).setOnClickListener(v -> requestPermission());
+        textView = findViewById(R.id.tvResultPath);
     }
 
     public void requestPermission() {
@@ -83,5 +88,9 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, 101);
     }
 
-
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        textView.setText(data.getExtras().getParcelable(CameraActivity.INTENT_PATH).toString());
+    }
 }

@@ -2,6 +2,7 @@ package com.brianhoang.recordvideo.camera;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Matrix;
@@ -15,7 +16,6 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -24,6 +24,7 @@ import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +32,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.brianhoang.recordvideo.ui.AutoFitTextureView;
 import com.brianhoang.recordvideo.utils.CameraSize;
+import com.brianhoang.recordvideo.utils.ProgressUpdate;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,6 +63,8 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_180, 270);
     }
 
+
+    private static final int RECORDER_VIDEO_BITRATE = 10000000;
 
     private String mCurrentFile;
 
@@ -112,9 +116,6 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
         }
 
     };
-
-    private String mCameraId;
-
     /**
      * The {@link Size} of camera.
      */
@@ -185,11 +186,7 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
 
     public abstract int getTextureResource();
 
-    protected abstract int maxVideoLength();
-
     public abstract void onCameraPreview(SurfaceTexture surfaceTexture);
-
-    public abstract int getCameraQuality();
 
     protected void setUpView() {
         mTextureView = findViewById(getTextureResource());
@@ -270,8 +267,6 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
                 if (facing != null && facing != mCameraLensFacingDirection) {
                     continue;
                 }
-                mCameraId = cameraId;
-
                 StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
                 if (map == null) {
@@ -423,15 +418,11 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mCurrentFile = getOutputMediaFile();
         mMediaRecorder.setOutputFile(mCurrentFile);
-        CamcorderProfile profile = CamcorderProfile.get(getCameraQuality());
-        mMediaRecorder.setVideoFrameRate(profile.videoFrameRate);
+
+        mMediaRecorder.setVideoEncodingBitRate(RECORDER_VIDEO_BITRATE);
         mMediaRecorder.setVideoSize(mCameraSize.getWidth(), mCameraSize.getHeight());
-        mMediaRecorder.setVideoEncodingBitRate(profile.videoBitRate);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mMediaRecorder.setAudioEncodingBitRate(profile.audioBitRate);
-        mMediaRecorder.setAudioSamplingRate(profile.audioSampleRate);
-        mMediaRecorder.setMaxDuration(maxVideoLength());
 
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
         switch (mSensorOrientation) {
@@ -486,6 +477,7 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
                     Log.e(TAG, "onConfigureFailed: Failed");
+                    Toast.makeText(CameraLogicActivity.this, "createCaptureSession Failed", Toast.LENGTH_SHORT).show();
                 }
             }, mBackgroundHandler);
         } catch (CameraAccessException | IOException e) {
@@ -558,6 +550,10 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+        return isTorchOn;
+    }
+
+    public boolean isFlashOn() {
         return isTorchOn;
     }
 }

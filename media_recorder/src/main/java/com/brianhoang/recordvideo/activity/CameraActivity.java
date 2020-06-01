@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
-import android.media.CamcorderProfile;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,9 +16,11 @@ import com.brianhoang.recordvideo.R;
 import com.brianhoang.recordvideo.camera.CameraLogicActivity;
 import com.brianhoang.recordvideo.ui.LineProgressView;
 import com.brianhoang.recordvideo.ui.RecordView;
+import com.brianhoang.recordvideo.utils.ProgressUpdate;
 import com.brianhoang.recordvideo.utils.RecordFileUtil;
 
 import java.io.File;
+import java.util.TimerTask;
 
 public class CameraActivity extends CameraLogicActivity {
     public static final String TAG = "CameraActivity";
@@ -33,8 +34,10 @@ public class CameraActivity extends CameraLogicActivity {
     public static final int REQUEST_CODE_VIDEO = 100;
     public static final int REQUEST_CODE_PHOTO = 101;
 
+    private static final int INTERVAL_UPDATE = 100;
 
-    public static final int MAX_VIDEO_LENGTH = 10 * 1000;
+    public static final float MAX_VIDEO_TIME = 10f * 1000;
+    public static final float MIN_VIDEO_TIME = 2f * 1000;
 
     private LineProgressView lineProgressView;
     private ImageView ivSwitchFlash;
@@ -43,11 +46,12 @@ public class CameraActivity extends CameraLogicActivity {
     private boolean isCapturePhoto = false;
 
     private String mOutputFilePath;
+    ProgressUpdate progressUpdate;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.fragment_camera);
+        setContentView(R.layout.activity_camera);
         setUpView();
 
         File tempPath = new File(getFilesDir().getPath() + "/VideoRecord/");
@@ -66,11 +70,6 @@ public class CameraActivity extends CameraLogicActivity {
     }
 
     @Override
-    protected int maxVideoLength() {
-        return MAX_VIDEO_LENGTH;
-    }
-
-    @Override
     public void onCameraPreview(SurfaceTexture surfaceTexture) {
         Log.e(TAG, "onCameraPreview");
 
@@ -79,11 +78,6 @@ public class CameraActivity extends CameraLogicActivity {
             Bitmap bitmap = mTextureView.getBitmap();
             savePhoto(bitmap);
         }
-    }
-
-    @Override
-    public int getCameraQuality() {
-        return CamcorderProfile.QUALITY_1080P;
     }
 
     @Override
@@ -106,21 +100,12 @@ public class CameraActivity extends CameraLogicActivity {
                     }
                 } else {
                     startRecordingVideo();
-                    //Receive out put file here
-                    mOutputFilePath = getCurrentFile();
                 }
             }
 
             @Override
             public void onUp() {
                 upEvent();
-                if (mIsRecordingVideo) {
-                    try {
-                        stopRecordingVideo();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
             }
 
             @Override
@@ -145,12 +130,57 @@ public class CameraActivity extends CameraLogicActivity {
             boolean flash = switchFlash();
             ivSwitchFlash.setImageResource(flash ? R.drawable.ic_flash_on : R.drawable.ic_flash_off);
         });
+
+        findViewById(R.id.close).setOnClickListener(v -> cancelRecord());
     }
 
     private void upEvent() {
-        initRecorderState();
-        finishVideo();
+        runOnUiThread(() -> {
+            initRecorderState();
+            finishVideo();
+        });
     }
+
+    @Override
+    public void startRecordingVideo() {
+        super.startRecordingVideo();
+
+        //Receive out put file here
+        mOutputFilePath = getCurrentFile();
+
+        videoDuration = 0;
+        recordTime = System.currentTimeMillis();
+        progressUpdate = new ProgressUpdate(progressUpdateRunnable, INTERVAL_UPDATE);
+        progressUpdate.startUpdate();
+    }
+
+    @Override
+    public void stopRecordingVideo() {
+        if (null != progressUpdate) {
+            progressUpdate.stopUpdate();
+        }
+
+        videoDuration = 0;
+        recordTime = System.currentTimeMillis();
+        super.stopRecordingVideo();
+    }
+
+    private long videoDuration;
+    private long recordTime;
+    private TimerTask progressUpdateRunnable = new TimerTask() {
+        @Override
+        public void run() {
+            Log.e(TAG, "progressUpdateRunnable");
+            long currentTime = System.currentTimeMillis();
+            videoDuration += currentTime - recordTime;
+            recordTime = currentTime;
+            if (videoDuration <= MAX_VIDEO_TIME) {
+                lineProgressView.setProgress(videoDuration / MAX_VIDEO_TIME);
+            } else {
+                upEvent();
+            }
+        }
+    };
 
     private void initRecorderState() {
 
@@ -160,7 +190,6 @@ public class CameraActivity extends CameraLogicActivity {
             tv_hint.setText(R.string.capture_guide);
         }
         tv_hint.setVisibility(View.VISIBLE);
-
     }
 
     private void cleanRecord() {
@@ -179,10 +208,9 @@ public class CameraActivity extends CameraLogicActivity {
         startActivityForResult(intent, REQUEST_CODE_VIDEO);
     }
 
+
     private void savePhoto(Bitmap bitmap) {
         new AsyncTask<Bitmap, Void, String>() {
-
-
             @Override
             protected String doInBackground(Bitmap... bitmaps) {
                 Bitmap bm = bitmaps[0];
@@ -206,5 +234,37 @@ public class CameraActivity extends CameraLogicActivity {
      */
     protected String getOutputMediaFile() {
         return RecordFileUtil.createMp4FileInBox();
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        cancelRecord();
+    }
+
+    private void cancelRecord() {
+        setResult(RESULT_CANCELED);
+        finish();
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && data != null) {
+            if (requestCode == REQUEST_CODE_VIDEO) {
+                Intent intent = new Intent(data);
+                setResult(RESULT_OK, intent);
+                finish();
+            } else if (requestCode == REQUEST_CODE_PHOTO) {
+                Intent intent = new Intent(data);
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        } else {
+            cleanRecord();
+            initRecorderState();
+        }
     }
 }
