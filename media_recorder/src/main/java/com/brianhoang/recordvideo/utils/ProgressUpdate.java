@@ -7,25 +7,17 @@ import java.util.TimerTask;
 
 public class ProgressUpdate {
     public static final String TAG = "ProgressUpdate";
-    private TimerTask timerTask;
 
     private Timer timer;
-    private int intervalUpdate;
 
-    public ProgressUpdate(TimerTask timerTask, int interval) {
+    public synchronized void startUpdate(TimerTask timerTask, int interval) {
         timer = new Timer();
-        this.timerTask = timerTask;
-        intervalUpdate = interval;
-    }
-
-    public synchronized void startUpdate() {
         Log.e(TAG, "startUpdates");
-        timer.scheduleAtFixedRate(timerTask, 0, intervalUpdate);
+        timer.scheduleAtFixedRate(timerTask, 0, interval);
     }
 
     public synchronized void stopUpdate() {
         Log.e(TAG, "stopUpdates");
         timer.cancel();
-        timerTask.cancel();
     }
 }

@@ -2,7 +2,6 @@ package com.brianhoang.recordvideo.camera;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Matrix;
@@ -32,7 +31,6 @@ import androidx.core.app.ActivityCompat;
 
 import com.brianhoang.recordvideo.ui.AutoFitTextureView;
 import com.brianhoang.recordvideo.utils.CameraSize;
-import com.brianhoang.recordvideo.utils.ProgressUpdate;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -92,8 +90,7 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
      * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
      * {@link TextureView}.
      */
-    private TextureView.SurfaceTextureListener mSurfaceTextureListener
-            = new TextureView.SurfaceTextureListener() {
+    private TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
@@ -188,6 +185,8 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
 
     public abstract void onCameraPreview(SurfaceTexture surfaceTexture);
 
+    public abstract Size maxCameraSize();
+
     protected void setUpView() {
         mTextureView = findViewById(getTextureResource());
     }
@@ -273,10 +272,14 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
                     throw new RuntimeException("Cannot get available preview/video sizes");
                 }
 
-                /* The {@link Size} of video recording. */
-                mCameraSize = CameraSize.chooseVideoSize(map.getOutputSizes(SurfaceTexture.class));
-                mPreviewSize = CameraSize.chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
-                        width, height, mCameraSize);
+                Log.e(TAG, "openCamera: WxH:" + width + "-" + height);
+
+                Size[] sizes = map.getOutputSizes(SurfaceTexture.class);
+
+                mCameraSize = CameraSize.chooseVideoSize(maxCameraSize(), sizes);
+                mPreviewSize = CameraSize.chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),  mCameraSize);
+                Log.e(TAG, "openCamera: CameraSize:" + mCameraSize.getWidth() + "-" + mCameraSize.getHeight());
+                Log.e(TAG, "openCamera: PreviewSize:" + mPreviewSize.getWidth() + "-" + mPreviewSize.getHeight());
 
                 int orientation = getResources().getConfiguration().orientation;
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -297,8 +300,10 @@ public abstract class CameraLogicActivity extends AppCompatActivity {
                 return;
             }
         } catch (CameraAccessException e) {
+            e.printStackTrace();
             Log.e(TAG, "openCamera: Cannot access the camera.");
         } catch (NullPointerException e) {
+            e.printStackTrace();
             Log.e(TAG, "Camera2API is not supported on the device.");
         }
     }

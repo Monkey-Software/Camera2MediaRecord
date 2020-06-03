@@ -1,5 +1,6 @@
 package com.brianhoang.recordvideo.activity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -7,7 +8,7 @@ import android.graphics.SurfaceTexture;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
+import android.util.Size;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,7 +24,6 @@ import java.io.File;
 import java.util.TimerTask;
 
 public class CameraActivity extends CameraLogicActivity {
-    public static final String TAG = "CameraActivity";
 
     public static final String INTENT_PATH = "intent_path";
     public static final String INTENT_DATA_TYPE = "result_data_type";
@@ -37,7 +37,6 @@ public class CameraActivity extends CameraLogicActivity {
     private static final int INTERVAL_UPDATE = 100;
 
     public static final float MAX_VIDEO_TIME = 10f * 1000;
-    public static final float MIN_VIDEO_TIME = 2f * 1000;
 
     private LineProgressView lineProgressView;
     private ImageView ivSwitchFlash;
@@ -48,6 +47,9 @@ public class CameraActivity extends CameraLogicActivity {
     private String mOutputFilePath;
     ProgressUpdate progressUpdate;
 
+
+    ProgressDialog progressDialog;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +58,9 @@ public class CameraActivity extends CameraLogicActivity {
 
         File tempPath = new File(getFilesDir().getPath() + "/VideoRecord/");
         RecordFileUtil.setFileDir(tempPath.getPath());
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Processing");
     }
 
     @Override
@@ -71,13 +76,16 @@ public class CameraActivity extends CameraLogicActivity {
 
     @Override
     public void onCameraPreview(SurfaceTexture surfaceTexture) {
-        Log.e(TAG, "onCameraPreview");
-
         if (isCapturePhoto) {
             isCapturePhoto = false;
             Bitmap bitmap = mTextureView.getBitmap();
             savePhoto(bitmap);
         }
+    }
+
+    @Override
+    public Size maxCameraSize() {
+        return new Size(1920, 1080);
     }
 
     @Override
@@ -150,8 +158,20 @@ public class CameraActivity extends CameraLogicActivity {
 
         videoDuration = 0;
         recordTime = System.currentTimeMillis();
-        progressUpdate = new ProgressUpdate(progressUpdateRunnable, INTERVAL_UPDATE);
-        progressUpdate.startUpdate();
+        progressUpdate = new ProgressUpdate();
+        progressUpdate.startUpdate(new TimerTask() {
+            @Override
+            public void run() {
+                long currentTime = System.currentTimeMillis();
+                videoDuration += currentTime - recordTime;
+                recordTime = currentTime;
+                if (videoDuration <= MAX_VIDEO_TIME) {
+                    lineProgressView.setProgress(videoDuration / MAX_VIDEO_TIME);
+                } else {
+                    upEvent();
+                }
+            }
+        }, INTERVAL_UPDATE);
     }
 
     @Override
@@ -167,20 +187,6 @@ public class CameraActivity extends CameraLogicActivity {
 
     private long videoDuration;
     private long recordTime;
-    private TimerTask progressUpdateRunnable = new TimerTask() {
-        @Override
-        public void run() {
-            Log.e(TAG, "progressUpdateRunnable");
-            long currentTime = System.currentTimeMillis();
-            videoDuration += currentTime - recordTime;
-            recordTime = currentTime;
-            if (videoDuration <= MAX_VIDEO_TIME) {
-                lineProgressView.setProgress(videoDuration / MAX_VIDEO_TIME);
-            } else {
-                upEvent();
-            }
-        }
-    };
 
     private void initRecorderState() {
 
@@ -208,9 +214,14 @@ public class CameraActivity extends CameraLogicActivity {
         startActivityForResult(intent, REQUEST_CODE_VIDEO);
     }
 
-
     private void savePhoto(Bitmap bitmap) {
         new AsyncTask<Bitmap, Void, String>() {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                progressDialog.show();
+            }
+
             @Override
             protected String doInBackground(Bitmap... bitmaps) {
                 Bitmap bm = bitmaps[0];
@@ -220,13 +231,13 @@ public class CameraActivity extends CameraLogicActivity {
             @Override
             protected void onPostExecute(String result) {
                 super.onPostExecute(result);
+                progressDialog.dismiss();
                 Intent intent = new Intent(CameraActivity.this, ViewPhotoActivity.class);
                 intent.putExtra(ViewPhotoActivity.INTENT_PATH, result);
                 startActivityForResult(intent, REQUEST_CODE_PHOTO);
             }
         }.execute(bitmap);
     }
-
 
     /**
      * Create directory and return file
@@ -267,4 +278,5 @@ public class CameraActivity extends CameraLogicActivity {
             initRecorderState();
         }
     }
+
 }
