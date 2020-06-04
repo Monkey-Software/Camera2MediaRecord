@@ -5,7 +5,6 @@ Camera2MediaRecord is an opensource built on top of Android camera2 api.
 |---|---|
 | ![Video viewer](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/videoviewer.png?raw=true) | ![Photo viewer](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/photoviewer.png?raw=true) |
 
-
 # Notice
 In develop mode
 
@@ -19,7 +18,22 @@ In develop mode
   - Customize UI
 
 # How to use
-  - Import code as a module and add 
+  - Step 1. Add the JitPack repository to your build file
+  ```
+  allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+  ```
+  - Step 1. Add the dependency
+  ```
+  dependencies {
+	        implementation 'com.github.namhvcntt:Camera2MediaRecord:Tag'
+	}
+  ```
+  
   - Start activity
 ```
 public static final int REQUEST_CAMERA = 1001;
