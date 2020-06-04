@@ -1,8 +1,10 @@
 # Camera 2 Media Recorder
 Camera2MediaRecord is an opensource built on top of Android camera2 api.
 
-|  [Camera screen](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/camera.png?raw=true) | [Recording](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/recording.png?raw=true)  | 
-|[Video viewer](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/videoviewer.png?raw=true)|[Photo viewer](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/photoviewer.png?raw=true)|
+|  [](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/camera.png?raw=true) | [](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/recording.png?raw=true)  | 
+|Camera screen|Recording|
+|[](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/videoviewer.png?raw=true)|[](https://github.com/namhvcntt/Camera2MediaRecord/blob/master/photos/photoviewer.png?raw=true)|
+|Video viewer|Photo viewer|
 
 # Notice
 In develop mode
