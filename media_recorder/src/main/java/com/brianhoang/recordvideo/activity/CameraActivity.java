@@ -45,10 +45,8 @@ public class CameraActivity extends CameraLogicActivity {
     private boolean isCapturePhoto = false;
 
     private String mOutputFilePath;
-    ProgressUpdate progressUpdate;
-
-
-    ProgressDialog progressDialog;
+    private  ProgressUpdate progressUpdate;
+    private ProgressDialog progressDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

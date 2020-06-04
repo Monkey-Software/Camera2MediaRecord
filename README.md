@@ -1,6 +1,9 @@
 # Camera 2 Media Recorder
 Camera2MediaRecord is an opensource built on top of Android camera2 api.
 
+|  [Camera screen](../blob/master/camera.png) | [Recording](../blob/master/recording.png)  | 
+|[Video viewer](../blob/master/videoviewer.png)|[Photo viewer](../blob/master/photoviewer.png)|
+
 # Features!
   - Capture photo
   - Record video
